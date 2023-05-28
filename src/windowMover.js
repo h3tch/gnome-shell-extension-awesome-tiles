@@ -119,9 +119,9 @@ var WindowMover = class WindowMover {
 
     // Recalculate after size / position (required for real window)
     let innerRectAfter = window.get_frame_rect()
-    let outterRectAfter = window.get_buffer_rect()
-    let decoLeftAfter  = (innerRectAfter.x-outterRectAfter.x)
-    let decoTopAfter   = (innerRectAfter.y-outterRectAfter.y)
+    let outerRectAfter = window.get_buffer_rect()
+    let decoLeftAfter  = (innerRectAfter.x-outerRectAfter.x)
+    let decoTopAfter   = (innerRectAfter.y-outerRectAfter.y)
 
     // Set real window actor position
     actor.scale_x = actorInitScaleX
@@ -154,9 +154,9 @@ var WindowMover = class WindowMover {
     })
     thisAnimation.newFrameEvent = timer.connect('new-frame', ()=>{
       const progress = timer.get_progress()
-      outterRectAfter = window.get_buffer_rect()
-      decoLeftAfter  = (innerRectAfter.x-outterRectAfter.x)
-      decoTopAfter   = (innerRectAfter.y-outterRectAfter.y)
+      outerRectAfter = window.get_buffer_rect()
+      decoLeftAfter  = (innerRectAfter.x-outerRectAfter.x)
+      decoTopAfter   = (innerRectAfter.y-outerRectAfter.y)
 
       actor.x = this._lerp(
         innerRectBefore.x - decoLeftAfter*actorInitScaleX,
@@ -172,9 +172,9 @@ var WindowMover = class WindowMover {
       actor.scale_y = this._lerp(actorInitScaleY,1,progress)
     })
     thisAnimation.completedEvent = timer.connect('completed', ()=>{
-      outterRectAfter = window.get_buffer_rect()
-      actor.x = outterRectAfter.x
-      actor.y = outterRectAfter.y
+      outerRectAfter = window.get_buffer_rect()
+      actor.x = outerRectAfter.x
+      actor.y = outerRectAfter.y
       actor.scale_y = actor.scale_x = 1
 
       const nowAnimation = this._windowAnimations.find(item=>item.window === window)

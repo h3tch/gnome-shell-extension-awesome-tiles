@@ -110,34 +110,33 @@ class Extension {
     const monitor = window.get_monitor()
     const monitorGeometry = global.display.get_monitor_geometry(monitor)
     const isVertical = monitorGeometry.width < monitorGeometry.height
-  
+
     const workspace = window.get_workspace()
     const workspaceArea = workspace.get_work_area_for_monitor(monitor)
     const gap = this._gapSize
 
-    
     if (gap <= 0) return {
       x: workspaceArea.x,
       y: workspaceArea.y,
       height: workspaceArea.height,
       width: workspaceArea.width,
     }
-    
+
     const gapUncheckedX = Math.round(gap / 200 * workspaceArea.width)
     const gapUncheckedY = Math.round(gap / 200 * workspaceArea.height)
-    
+
     const gaps = {
       x: Math.min(gapUncheckedX, gapUncheckedY * 2),
       y: Math.min(gapUncheckedY, gapUncheckedX * 2),
     }
-    
+
     // If the monitor is vertical, swap the gap values
     if (isVertical) {
       const temp = gaps.x
       gaps.x = gaps.y
       gaps.y = temp
     }
-    
+
     return {
       x: workspaceArea.x + gaps.x,
       y: workspaceArea.y + gaps.y,
@@ -171,13 +170,13 @@ class Extension {
 
   _notifyGapSize() {
     const gapSize = this._gapSize
-    Main.osdWindowManager.show(-1,this._osdGapChangedIcon,
+    Main.osdWindowManager.show(-1, this._osdGapChangedIcon,
       ngettext(
         'Gap size is now at %d percent',
         'Gap size is now at %d percent',
         gapSize
       ).format(gapSize),
-      null,null,null
+      null, null, null
     )
   }
 
@@ -249,15 +248,16 @@ class Extension {
   }
 
   _computeWindowRect(window, top, bottom, left, right, step, center) {
-    const widthFactor = 1.0 - step[0]
-    const heightFactor = step.length > 1 ? (1.0 - step[1]) : widthFactor
+    const floating = step.length > 2
+    const widthFactor = 1.0 - step[Math.max(0, step.length - 2)]
+    const heightFactor = 1.0 - step[Math.max(0, step.length - 1)]
 
     const workArea = this._calculateWorkspaceArea(window)
     let { x, y, width, height } = workArea
 
     // Special case - when tiling to the center we want the largest size to
     // cover the whole available space
-    if (center) {
+    if (center || floating) {
       const monitor = window.get_monitor()
       const monitorGeometry = global.display.get_monitor_geometry(monitor)
       const isVertical = monitorGeometry.width < monitorGeometry.height
@@ -266,9 +266,16 @@ class Extension {
 
       width -= width * centerTilingWidthFactor
       height -= height * centerTilingHeightFactor
-      x += (workArea.width - width) / 2
-      y += (workArea.height - height) / 2
 
+      if (floating) {
+        const xFactor = step[Math.max(0, step.length - 4)]
+        const yFactor = step[Math.max(0, step.length - 3)]
+        x += workArea.width * xFactor
+        y += workArea.height * yFactor
+      } else {
+        x += (workArea.width - width) / 2
+        y += (workArea.height - height) / 2
+      }
     } else {
       if (left !== right) width -= width * widthFactor
       if (top !== bottom) height -= height * heightFactor
